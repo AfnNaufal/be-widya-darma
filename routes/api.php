@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\Admin\AuthController as AdminAuthController;
 use App\Http\Controllers\Api\Admin\ExtracurricularController as AdminExtracurricularController;
 use App\Http\Controllers\Api\Admin\GalleryController as AdminGalleryController;
 use App\Http\Controllers\Api\Admin\KnowledgeBaseController as AdminKnowledgeBaseController;
@@ -53,16 +54,23 @@ Route::prefix('chat')->group(function () {
 */
 
 Route::prefix('admin')->group(function () {
-    // School Profile (Single Record Upsert)
-    Route::get('/profile', [AdminSchoolProfileController::class, 'show']);
-    Route::post('/profile', [AdminSchoolProfileController::class, 'upsert']);
-    Route::put('/profile', [AdminSchoolProfileController::class, 'upsert']);
+    Route::post('/login', [AdminAuthController::class, 'login'])->middleware('throttle:5,1');
 
-    // Resource CRUD
-    Route::apiResource('programs', AdminProgramController::class);
-    Route::apiResource('extracurriculars', AdminExtracurricularController::class);
-    Route::apiResource('spmb', AdminSpmbController::class);
-    Route::apiResource('news', AdminNewsController::class);
-    Route::apiResource('galleries', AdminGalleryController::class);
-    Route::apiResource('knowledge-bases', AdminKnowledgeBaseController::class);
+    Route::middleware('auth.admin')->group(function () {
+        Route::post('/logout', [AdminAuthController::class, 'logout']);
+        Route::get('/me', [AdminAuthController::class, 'me']);
+
+        // School Profile (Single Record Upsert)
+        Route::get('/profile', [AdminSchoolProfileController::class, 'show']);
+        Route::post('/profile', [AdminSchoolProfileController::class, 'upsert']);
+        Route::put('/profile', [AdminSchoolProfileController::class, 'upsert']);
+
+        // Resource CRUD
+        Route::apiResource('programs', AdminProgramController::class);
+        Route::apiResource('extracurriculars', AdminExtracurricularController::class);
+        Route::apiResource('spmb', AdminSpmbController::class);
+        Route::apiResource('news', AdminNewsController::class);
+        Route::apiResource('galleries', AdminGalleryController::class);
+        Route::apiResource('knowledge-bases', AdminKnowledgeBaseController::class);
+    });
 });

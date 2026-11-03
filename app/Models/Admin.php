@@ -22,6 +22,8 @@ class Admin extends Authenticatable
 
     protected $hidden = [
         'password',
+        'api_token',
+        'api_token_expires_at',
     ];
 
     protected function casts(): array
