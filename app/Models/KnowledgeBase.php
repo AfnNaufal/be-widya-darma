@@ -11,6 +11,8 @@ class KnowledgeBase extends Model
 {
     use HasFactory;
 
+    protected $table = 'knowledge_base';
+
     protected $primaryKey = 'kb_id';
 
     protected $fillable = [

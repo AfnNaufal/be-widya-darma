@@ -10,6 +10,8 @@ class SchoolProfile extends Model
 {
     use HasFactory;
 
+    protected $table = 'school_profile';
+
     protected $primaryKey = 'profile_id';
 
     protected $fillable = [

@@ -42,7 +42,7 @@ Route::prefix('news')->group(function () {
 Route::get('/galleries', [GalleryController::class, 'index']);
 
 // AI Chatbot
-Route::prefix('chat')->group(function () {
+Route::prefix('chat')->middleware('throttle:chatbot')->group(function () {
     Route::post('/send', [ChatController::class, 'sendMessage']);
     Route::get('/history/{visitor_token}', [ChatController::class, 'history']);
 });

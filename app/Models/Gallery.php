@@ -10,6 +10,8 @@ class Gallery extends Model
 {
     use HasFactory;
 
+    protected $table = 'gallery';
+
     protected $primaryKey = 'gallery_id';
 
     public $timestamps = false;
