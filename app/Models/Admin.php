@@ -18,6 +18,8 @@ class Admin extends Authenticatable
         'name',
         'email',
         'password',
+        'api_token',
+        'api_token_expires_at',
     ];
 
     protected $hidden = [
@@ -30,6 +32,7 @@ class Admin extends Authenticatable
     {
         return [
             'password' => 'hashed',
+            'api_token_expires_at' => 'datetime',
         ];
     }
 

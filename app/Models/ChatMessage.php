@@ -19,7 +19,7 @@ class ChatMessage extends Model
         'kb_id',
         'sender',
         'message',
-        'intent',
+        'topic',
         'is_answered',
         'tokens_used',
         'created_at',
