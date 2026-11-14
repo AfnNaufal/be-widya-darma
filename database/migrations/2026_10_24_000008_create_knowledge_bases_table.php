@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('knowledge_bases', function (Blueprint $table) {
+        Schema::create('knowledge_base', function (Blueprint $table) {
             $table->id('kb_id');
             $table->foreignId('admin_id')->constrained('admins', 'admin_id')->cascadeOnDelete();
             $table->string('category')->index();
@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('knowledge_bases');
+        Schema::dropIfExists('knowledge_base');
     }
 };
