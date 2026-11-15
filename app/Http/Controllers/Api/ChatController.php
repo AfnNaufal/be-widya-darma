@@ -20,8 +20,8 @@ class ChatController extends Controller
     public function sendMessage(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'visitor_token' => 'required|string|max:255',
-            'message' => 'required|string|max:1000',
+            'visitor_token' => ['required', 'string', 'max:100', 'regex:/^[a-zA-Z0-9_\-]+$/'],
+            'message' => ['required', 'string', 'max:1000'],
         ]);
 
         $response = $this->chatbotService->processMessage(
@@ -40,10 +40,17 @@ class ChatController extends Controller
      */
     public function history(string $visitorToken): JsonResponse
     {
+        if (! preg_match('/^[a-zA-Z0-9_\-]+$/', $visitorToken) || strlen($visitorToken) > 100) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Format visitor_token tidak valid.',
+            ], 422);
+        }
+
         $session = ChatSession::where('visitor_token', $visitorToken)
             ->with(['messages' => function ($query) {
                 $query->with('knowledgeBase:kb_id,title,category')
-                      ->orderBy('created_at', 'asc');
+                    ->orderBy('created_at', 'asc');
             }])
             ->first();
 

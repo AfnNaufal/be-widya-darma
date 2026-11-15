@@ -30,11 +30,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Rate limiter khusus untuk AI Chatbot (NFR-04)
+        // Rate limiter khusus untuk AI Chatbot (NFR-04 & Security Hardening: Anti-Spoofing via IP)
         RateLimiter::for('chatbot', function (Request $request) {
-            $key = (string) ($request->input('visitor_token') ?: $request->ip());
-
-            return Limit::perMinute(60)->by($key)->response(function () {
+            return Limit::perMinute(60)->by($request->ip())->response(function () {
                 return response()->json([
                     'success' => false,
                     'message' => 'Terlalu banyak permintaan chat dalam waktu singkat. Silakan tunggu sebentar sebelum mengirim pesan kembali.',
