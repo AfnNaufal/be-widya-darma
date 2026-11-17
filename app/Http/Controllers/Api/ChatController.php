@@ -16,16 +16,26 @@ class ChatController extends Controller
 
     /**
      * Mengirim pesan dari pengunjung ke AI Chatbot.
+     * Mendukung field 'message' maupun 'question' (sesuai frontend SchoolChat.tsx).
      */
     public function sendMessage(Request $request): JsonResponse
     {
+        $hasQuestionField = $request->has('question') && ! $request->has('message');
+
+        if ($hasQuestionField) {
+            $request->merge(['message' => $request->input('question')]);
+        }
+
         $validated = $request->validate([
-            'visitor_token' => 'required|string|max:255',
-            'message' => 'required|string|max:1000',
+            'visitor_token' => ['sometimes', 'required', 'string', 'max:255'],
+            'message' => ['required', 'string', 'max:2000'],
         ]);
 
+        $visitorToken = $validated['visitor_token']
+            ?? substr(hash('sha256', ($request->ip() ?? 'guest').'|'.($request->userAgent() ?? 'web')), 0, 32);
+
         $response = $this->chatbotService->processMessage(
-            $validated['visitor_token'],
+            $visitorToken,
             $validated['message']
         );
 
@@ -43,7 +53,7 @@ class ChatController extends Controller
         $session = ChatSession::where('visitor_token', $visitorToken)
             ->with(['messages' => function ($query) {
                 $query->with('knowledgeBase:kb_id,title,category')
-                      ->orderBy('created_at', 'asc');
+                    ->orderBy('created_at', 'asc');
             }])
             ->first();
 

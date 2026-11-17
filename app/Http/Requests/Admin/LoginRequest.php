@@ -15,12 +15,15 @@ class LoginRequest extends FormRequest
     }
 
     /**
+     * Mendukung login menggunakan 'email' maupun 'username' (sesuai LoginForm.tsx di frontend).
+     *
      * @return array<string, array<int, string>>
      */
     public function rules(): array
     {
         return [
-            'email' => ['required', 'email'],
+            'email' => ['required_without:username', 'nullable', 'string'],
+            'username' => ['required_without:email', 'nullable', 'string'],
             'password' => ['required', 'string'],
         ];
     }

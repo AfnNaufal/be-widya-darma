@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\Admin\NewsController as AdminNewsController;
 use App\Http\Controllers\Api\Admin\ProgramController as AdminProgramController;
 use App\Http\Controllers\Api\Admin\SchoolProfileController as AdminSchoolProfileController;
 use App\Http\Controllers\Api\Admin\SpmbController as AdminSpmbController;
+use App\Http\Controllers\Api\Admin\UploadController as AdminUploadController;
 use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\ExtracurricularController;
 use App\Http\Controllers\Api\GalleryController;
@@ -59,6 +60,9 @@ Route::prefix('admin')->group(function () {
     Route::middleware('auth.admin')->group(function () {
         Route::post('/logout', [AdminAuthController::class, 'logout']);
         Route::get('/me', [AdminAuthController::class, 'me']);
+
+        // Image Upload & WebP Compression
+        Route::post('/upload', [AdminUploadController::class, 'store']);
 
         // School Profile (Single Record Upsert)
         Route::get('/profile', [AdminSchoolProfileController::class, 'show']);

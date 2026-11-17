@@ -30,7 +30,7 @@ class ProgramController extends Controller
      */
     public function store(ProgramRequest $request): JsonResponse
     {
-        $program = Program::create($request->validated());
+        $program = Program::create($request->validatedWithWebp('programs'));
 
         return response()->json([
             'success' => true,
@@ -57,7 +57,7 @@ class ProgramController extends Controller
      */
     public function update(ProgramRequest $request, Program $program): JsonResponse
     {
-        $program->update($request->validated());
+        $program->update($request->validatedWithWebp('programs'));
 
         return response()->json([
             'success' => true,

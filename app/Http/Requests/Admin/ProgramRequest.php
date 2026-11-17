@@ -13,7 +13,8 @@ class ProgramRequest extends AdminRequest
             ...$this->adminRules(),
             'title' => [$this->requiredOnCreate(), 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'image_url' => ['nullable', 'string', 'max:255'],
+            'image_url' => ['nullable', 'string'],
+            'image' => ['nullable'],
         ];
     }
 }

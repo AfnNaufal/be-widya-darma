@@ -15,7 +15,8 @@ class ExtracurricularRequest extends AdminRequest
             'description' => ['nullable', 'string'],
             'coach_name' => ['nullable', 'string', 'max:255'],
             'schedule' => ['nullable', 'string', 'max:255'],
-            'image_url' => ['nullable', 'string', 'max:255'],
+            'image_url' => ['nullable', 'string'],
+            'image' => ['nullable'],
         ];
     }
 }

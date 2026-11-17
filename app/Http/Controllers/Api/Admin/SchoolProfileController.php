@@ -27,14 +27,15 @@ class SchoolProfileController extends Controller
      */
     public function upsert(SchoolProfileRequest $request): JsonResponse
     {
+        $data = $request->validatedWithWebp('profiles', 'logo_url', 'logo');
         $profile = SchoolProfile::first();
 
         if ($profile) {
-            $profile->update($request->validated());
+            $profile->update($data);
             $message = 'Profil sekolah berhasil diperbarui.';
             $status = 200;
         } else {
-            $profile = SchoolProfile::create($request->validated());
+            $profile = SchoolProfile::create($data);
             $message = 'Profil sekolah berhasil dibuat.';
             $status = 201;
         }
