@@ -20,8 +20,13 @@ class NewsRequest extends AdminRequest
             'title' => [$this->requiredOnCreate(), 'string', 'max:255'],
             'slug' => ['nullable', 'string', 'max:255', 'alpha_dash', Rule::unique('news', 'slug')->ignore($ignoreId, 'news_id')],
             'content' => [$this->requiredOnCreate(), 'string'],
-            'image_url' => ['nullable', 'string', 'max:255'],
+            'image_url' => ['nullable', 'string'],
+            'image' => ['nullable'],
             'published_at' => ['nullable', 'date'],
+            'status' => ['nullable', 'string', 'in:Terbit,Draf,Dalam tinjauan,published,draft'],
+            'photos' => ['nullable', 'array'],
+            'photos.*.url' => ['required_with:photos', 'string'],
+            'photos.*.caption' => ['nullable', 'string', 'max:255'],
         ];
     }
 }

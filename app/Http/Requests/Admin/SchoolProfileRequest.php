@@ -31,7 +31,8 @@ class SchoolProfileRequest extends AdminRequest
             'email' => ['nullable', 'email', 'max:255'],
             'instagram_url' => ['nullable', 'url', 'max:255'],
             'youtube_url' => ['nullable', 'url', 'max:255'],
-            'logo_url' => ['nullable', 'string', 'max:255'],
+            'logo_url' => ['nullable', 'string'],
+            'logo' => ['nullable'],
         ];
     }
 }

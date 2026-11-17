@@ -30,7 +30,7 @@ class ExtracurricularController extends Controller
      */
     public function store(ExtracurricularRequest $request): JsonResponse
     {
-        $extracurricular = Extracurricular::create($request->validated());
+        $extracurricular = Extracurricular::create($request->validatedWithWebp('extracurriculars'));
 
         return response()->json([
             'success' => true,
@@ -57,7 +57,7 @@ class ExtracurricularController extends Controller
      */
     public function update(ExtracurricularRequest $request, Extracurricular $extracurricular): JsonResponse
     {
-        $extracurricular->update($request->validated());
+        $extracurricular->update($request->validatedWithWebp('extracurriculars'));
 
         return response()->json([
             'success' => true,

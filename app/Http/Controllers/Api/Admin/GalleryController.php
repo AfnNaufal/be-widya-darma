@@ -36,7 +36,7 @@ class GalleryController extends Controller
     public function store(GalleryRequest $request): JsonResponse
     {
         $gallery = Gallery::create([
-            ...$request->validated(),
+            ...$request->validatedWithWebp('gallery'),
             'created_at' => now(),
         ]);
 
@@ -65,7 +65,7 @@ class GalleryController extends Controller
      */
     public function update(GalleryRequest $request, Gallery $gallery): JsonResponse
     {
-        $gallery->update($request->validated());
+        $gallery->update($request->validatedWithWebp('gallery'));
 
         return response()->json([
             'success' => true,
