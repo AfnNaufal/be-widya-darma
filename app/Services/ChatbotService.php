@@ -185,6 +185,7 @@ class ChatbotService
             'visitor_token' => $visitorToken,
             'user_message' => $sanitizedText,
             'bot_response' => $botResponseText,
+            'answer' => $botResponseText,
             'kb_id' => $kbId,
             'topic' => $topic,
             'intent' => $topic, // Alias kompatibilitas
@@ -217,8 +218,8 @@ class ChatbotService
             throw new InvalidArgumentException('Pesan pertanyaan tidak boleh kosong.');
         }
 
-        if (mb_strlen($trimmed) > 1000) {
-            throw new InvalidArgumentException('Pesan pertanyaan maksimal 1000 karakter.');
+        if (mb_strlen($trimmed) > 2000) {
+            throw new InvalidArgumentException('Pesan pertanyaan maksimal 2000 karakter.');
         }
     }
 

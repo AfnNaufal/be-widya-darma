@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\Admin\NewsController as AdminNewsController;
 use App\Http\Controllers\Api\Admin\ProgramController as AdminProgramController;
 use App\Http\Controllers\Api\Admin\SchoolProfileController as AdminSchoolProfileController;
 use App\Http\Controllers\Api\Admin\SpmbController as AdminSpmbController;
+use App\Http\Controllers\Api\Admin\UploadController as AdminUploadController;
 use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\ExtracurricularController;
 use App\Http\Controllers\Api\GalleryController;
@@ -64,6 +65,9 @@ Route::prefix('admin')->group(function () {
         // Dashboard Summary & Chatbot Analytics (SRS FR-21, FR-22, FR-24)
         Route::get('/dashboard/stats', [AdminDashboardController::class, 'stats']);
         Route::get('/dashboard/chatbot-stats', [AdminDashboardController::class, 'chatbotStats']);
+
+        // Image Upload & WebP Compression
+        Route::post('/upload', [AdminUploadController::class, 'store']);
 
         // School Profile (Single Record Upsert)
         Route::get('/profile', [AdminSchoolProfileController::class, 'show']);

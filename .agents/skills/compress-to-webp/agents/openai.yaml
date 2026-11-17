@@ -1,0 +1,4 @@
+interface:
+  display_name: "Compress to WebP"
+  short_description: "Compress images into high-quality WebP for the web"
+  default_prompt: "Use $compress-to-webp. Ask whether I have files or a folder, collect the source path, then ask where to save the WebP results."

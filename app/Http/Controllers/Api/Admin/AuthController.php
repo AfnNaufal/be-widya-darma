@@ -20,12 +20,17 @@ class AuthController extends Controller
      */
     public function login(LoginRequest $request): JsonResponse
     {
-        $admin = Admin::where('email', $request->validated('email'))->first();
+        $identifier = trim((string) ($request->validated('email') ?? $request->validated('username')));
+
+        $admin = Admin::where('email', $identifier)
+            ->orWhere('name', $identifier)
+            ->orWhere('email', 'LIKE', $identifier.'@%')
+            ->first();
 
         if (! $admin || ! Hash::check($request->validated('password'), $admin->password)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Email atau password salah.',
+                'message' => 'Email/username atau password salah.',
             ], 401);
         }
 
