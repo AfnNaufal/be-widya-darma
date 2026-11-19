@@ -17,8 +17,13 @@ class News extends Model
         'admin_id',
         'title',
         'slug',
+        'author_name',
+        'category',
+        'activity_date',
         'content',
         'image_url',
+        'status',
+        'crop_config',
         'published_at',
     ];
 
@@ -26,6 +31,7 @@ class News extends Model
     {
         return [
             'published_at' => 'datetime',
+            'crop_config' => 'array',
         ];
     }
 

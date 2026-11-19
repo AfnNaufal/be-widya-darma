@@ -15,16 +15,28 @@ class NewsController extends Controller
     ) {}
 
     /**
-     * Mengambil daftar berita publik terbaru.
+     * Mengambil daftar berita / kegiatan publik terbaru.
+     * Mendukung filter ?category= (misal: Berita, Jurnal, Karya, Prestasi, Ekstrakurikuler).
      */
     public function index(Request $request): JsonResponse
     {
-        $news = News::with(['galleries'])
+        $query = News::with(['galleries' => fn ($q) => $q->orderBy('sort_order')])
             ->withCount('visits')
-            ->whereNotNull('published_at')
-            ->where('published_at', '<=', now())
-            ->orderByDesc('published_at')
-            ->paginate($request->input('per_page', 10));
+            ->where(function ($q) {
+                $q->where('status', 'Terbit')
+                    ->orWhere(function ($sub) {
+                        $sub->whereNotNull('published_at')
+                            ->where('published_at', '<=', now());
+                    });
+            });
+
+        if ($request->filled('category') && strtolower((string) $request->query('category')) !== 'semua') {
+            $query->where('category', $request->string('category'));
+        }
+
+        $news = $query->orderByDesc('published_at')
+            ->orderByDesc('created_at')
+            ->paginate($request->integer('per_page', 12));
 
         return response()->json([
             'success' => true,
@@ -33,11 +45,11 @@ class NewsController extends Controller
     }
 
     /**
-     * Mengambil detail satu berita berdasarkan slug, sekaligus mencatat kunjungan (PageVisit).
+     * Mengambil detail satu berita / kegiatan berdasarkan slug, sekaligus mencatat kunjungan (PageVisit).
      */
     public function show(string $slug, Request $request): JsonResponse
     {
-        $news = News::with(['galleries'])
+        $news = News::with(['galleries' => fn ($q) => $q->orderBy('sort_order')])
             ->withCount('visits')
             ->where('slug', $slug)
             ->firstOrFail();

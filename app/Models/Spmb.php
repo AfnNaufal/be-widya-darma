@@ -17,9 +17,21 @@ class Spmb extends Model
     protected $fillable = [
         'admin_id',
         'academic_year',
+        'status_label',
+        'headline',
+        'subheadline',
+        'registration_fee',
+        'contact_phone',
+        'contact_email',
+        'brochure_url',
+        'brochure_file_name',
+        'brochure_uploaded_at',
         'description',
         'requirements',
         'schedule',
+        'waves',
+        'steps',
+        'faq',
         'start_date',
         'end_date',
         'is_active',
@@ -28,6 +40,9 @@ class Spmb extends Model
     protected function casts(): array
     {
         return [
+            'waves' => 'array',
+            'steps' => 'array',
+            'faq' => 'array',
             'start_date' => 'date',
             'end_date' => 'date',
             'is_active' => 'boolean',

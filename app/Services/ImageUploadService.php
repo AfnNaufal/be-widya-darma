@@ -44,6 +44,22 @@ class ImageUploadService
     }
 
     /**
+     * Menghapus file gambar .webp lama dari storage publik jika bukan aset statis bawaan (/images/...).
+     */
+    public function deleteStoredImage(?string $path): void
+    {
+        if (empty($path) || ! str_starts_with($path, '/storage/')) {
+            return;
+        }
+
+        $relativePath = ltrim(substr($path, strlen('/storage/')), '/');
+
+        if ($relativePath !== '' && Storage::disk('public')->exists($relativePath)) {
+            Storage::disk('public')->delete($relativePath);
+        }
+    }
+
+    /**
      * Memeriksa apakah string merupakan Data URL gambar Base64 (seperti dari FileReader.readAsDataURL di frontend).
      */
     public function isBase64Image(string $value): bool
