@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Admin\AuthController as AdminAuthController;
+use App\Http\Controllers\Api\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Api\Admin\ExtracurricularController as AdminExtracurricularController;
 use App\Http\Controllers\Api\Admin\GalleryController as AdminGalleryController;
 use App\Http\Controllers\Api\Admin\KnowledgeBaseController as AdminKnowledgeBaseController;
@@ -60,6 +61,10 @@ Route::prefix('admin')->group(function () {
     Route::middleware('auth.admin')->group(function () {
         Route::post('/logout', [AdminAuthController::class, 'logout']);
         Route::get('/me', [AdminAuthController::class, 'me']);
+
+        // Dashboard Summary & Chatbot Analytics (SRS FR-21, FR-22, FR-24)
+        Route::get('/dashboard/stats', [AdminDashboardController::class, 'stats']);
+        Route::get('/dashboard/chatbot-stats', [AdminDashboardController::class, 'chatbotStats']);
 
         // Image Upload & WebP Compression
         Route::post('/upload', [AdminUploadController::class, 'store']);

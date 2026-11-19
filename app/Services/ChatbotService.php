@@ -224,7 +224,7 @@ class ChatbotService
     }
 
     /**
-     * Menyanitasi input pertanyaan pengguna untuk mencegah injection & prompt manipulation (DC-20).
+     * Menyanitasi input pertanyaan pengguna untuk mencegah injection & prompt manipulation (DC-20, DC-05).
      */
     public function sanitize(string $input): string
     {
@@ -234,19 +234,33 @@ class ChatbotService
         // 2. Hapus karakter kontrol non-printable (kecuali newline & spasi)
         $cleaned = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $cleaned) ?? $cleaned;
 
-        // 3. Netralkan percobaan prompt injection umum
+        // 3. Hapus tag pembatas prompt buatan (mencegah prompt boundary escape)
+        $cleaned = str_ireplace(['<context>', '</context>', '<user_input>', '</user_input>'], '', $cleaned);
+
+        // 4. Kepatuhan Privasi Data Pengunjung (DC-05 & UU PDP No. 27/2022)
+        // Samarkan nomor NIK KTP / KK (16 digit)
+        $cleaned = preg_replace('/\b\d{16}\b/', '[NOMOR_IDENTITAS_DISAMARKAN]', $cleaned) ?? $cleaned;
+        // Samarkan nomor telepon pribadi
+        $cleaned = preg_replace('/\b(?:\+62|62|08)[0-9\s\-]{8,14}\b/', '[NOMOR_TELEPON_DISAMARKAN]', $cleaned) ?? $cleaned;
+
+        // 5. Netralkan percobaan prompt injection umum
         $patterns = [
             '/ignore\s+(all\s+)?(previous\s+)?instructions/i',
             '/abaikan\s+(semua\s+)?instruksi\s+(sebelumnya)?/i',
+            '/lupakan\s+(semua\s+)?(aturan|instruksi)\s+(sebelumnya)?/i',
             '/you\s+are\s+now/i',
             '/kamu\s+sekarang\s+adalah/i',
+            '/pretend\s+(you\s+are|to\s+be)/i',
+            '/pura-?pura\s+jadi/i',
             '/jailbreak/i',
+            '/dan\s+mode/i',
             '/system\s+prompt/i',
+            '/developer\s+mode/i',
         ];
 
         $cleaned = preg_replace($patterns, '[disaring]', $cleaned) ?? $cleaned;
 
-        // 4. Rapikan whitespace berlebih
+        // 6. Rapikan whitespace berlebih
         $cleaned = preg_replace('/\s+/', ' ', $cleaned) ?? $cleaned;
 
         return trim($cleaned);
