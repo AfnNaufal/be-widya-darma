@@ -18,14 +18,23 @@ class NewsController extends Controller
     ) {}
 
     /**
-     * Daftar seluruh berita (termasuk draft yang belum di-publish).
+     * Daftar seluruh berita / galeri kegiatan (bisa filter ?category= seperti Ekstrakurikuler, Berita, Prestasi, dll.).
      */
     public function index(Request $request): JsonResponse
     {
-        $news = News::with(['admin:admin_id,name', 'galleries'])
-            ->withCount('visits')
-            ->orderByDesc('created_at')
-            ->paginate($request->integer('per_page', 10));
+        $query = News::with(['admin:admin_id,name', 'galleries' => fn ($q) => $q->orderBy('sort_order')])
+            ->withCount('visits');
+
+        if ($request->filled('category') && strtolower((string) $request->query('category')) !== 'semua') {
+            $query->where('category', $request->string('category'));
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->string('status'));
+        }
+
+        $news = $query->orderByDesc('created_at')
+            ->paginate($request->integer('per_page', 12));
 
         return response()->json([
             'success' => true,
@@ -34,21 +43,28 @@ class NewsController extends Controller
     }
 
     /**
-     * Buat berita baru (slug otomatis di-generate dari title jika dikosongkan, gambar & photos dikonversi ke WebP).
+     * Buat berita / kegiatan baru (slug otomatis, gambar & photos dikonversi ke WebP).
      */
     public function store(NewsRequest $request): JsonResponse
     {
         $data = $request->validatedWithWebp('news');
         $photos = $data['photos'] ?? null;
-        $status = $data['status'] ?? null;
-        unset($data['photos'], $data['status']);
+        unset($data['photos']);
 
         if (empty($data['slug'])) {
             $data['slug'] = $this->generateUniqueSlug($data['title']);
         }
 
-        if (! array_key_exists('published_at', $data) && $status !== null) {
-            $data['published_at'] = in_array($status, ['Terbit', 'published'], true) ? now() : null;
+        if (empty($data['category'])) {
+            $data['category'] = 'Berita';
+        }
+
+        if (empty($data['status'])) {
+            $data['status'] = 'Terbit';
+        }
+
+        if (! array_key_exists('published_at', $data)) {
+            $data['published_at'] = in_array($data['status'], ['Terbit', 'published'], true) ? now() : null;
         }
 
         $processedPhotos = $this->processPhotosArray($photos);
@@ -65,17 +81,17 @@ class NewsController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Berita berhasil ditambahkan.',
-            'data' => $news->load('galleries'),
+            'message' => 'Berita / kegiatan berhasil ditambahkan.',
+            'data' => $news->load(['galleries' => fn ($q) => $q->orderBy('sort_order')]),
         ], 201);
     }
 
     /**
-     * Detail berita berdasarkan news_id.
+     * Detail berita / kegiatan berdasarkan news_id.
      */
     public function show(News $news): JsonResponse
     {
-        $news->load(['admin:admin_id,name', 'galleries'])->loadCount('visits');
+        $news->load(['admin:admin_id,name', 'galleries' => fn ($q) => $q->orderBy('sort_order')])->loadCount('visits');
 
         return response()->json([
             'success' => true,
@@ -84,21 +100,20 @@ class NewsController extends Controller
     }
 
     /**
-     * Perbarui berita.
+     * Perbarui berita / kegiatan.
      */
     public function update(NewsRequest $request, News $news): JsonResponse
     {
         $data = $request->validatedWithWebp('news');
         $photos = $data['photos'] ?? null;
-        $status = $data['status'] ?? null;
-        unset($data['photos'], $data['status']);
+        unset($data['photos']);
 
         if (isset($data['title']) && array_key_exists('slug', $data) && empty($data['slug'])) {
             $data['slug'] = $this->generateUniqueSlug($data['title'], $news->news_id);
         }
 
-        if (! array_key_exists('published_at', $data) && $status !== null) {
-            $data['published_at'] = in_array($status, ['Terbit', 'published'], true) ? ($news->published_at ?? now()) : null;
+        if (! array_key_exists('published_at', $data) && isset($data['status'])) {
+            $data['published_at'] = in_array($data['status'], ['Terbit', 'published'], true) ? ($news->published_at ?? now()) : null;
         }
 
         $processedPhotos = $this->processPhotosArray($photos);
@@ -110,27 +125,33 @@ class NewsController extends Controller
         $news->update($data);
 
         if ($photos !== null) {
-            $news->galleries()->delete();
+            foreach ($news->galleries as $oldGallery) {
+                $oldGallery->delete();
+            }
             $this->syncNewsGalleries($news, $processedPhotos);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Berita berhasil diperbarui.',
-            'data' => $news->fresh(['galleries']),
+            'message' => 'Berita / kegiatan berhasil diperbarui.',
+            'data' => $news->fresh(['galleries' => fn ($q) => $q->orderBy('sort_order')]),
         ]);
     }
 
     /**
-     * Hapus berita.
+     * Hapus berita / kegiatan (beserta file .webp di galeri terkait).
      */
     public function destroy(News $news): JsonResponse
     {
+        foreach ($news->galleries as $gallery) {
+            $gallery->delete();
+        }
+
         $news->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'Berita berhasil dihapus.',
+            'message' => 'Berita / kegiatan berhasil dihapus.',
         ]);
     }
 
@@ -159,7 +180,7 @@ class NewsController extends Controller
      * Mengonversi setiap foto di array photos menjadi .webp.
      *
      * @param  array<int, array<string, mixed>>|null  $photos
-     * @return array<int, array{image_url: string, caption: ?string}>
+     * @return array<int, array{image_url: string, caption: ?string, sort_order: int, is_cover: bool}>
      */
     protected function processPhotosArray(?array $photos): array
     {
@@ -168,7 +189,7 @@ class NewsController extends Controller
         }
 
         $result = [];
-        foreach ($photos as $photo) {
+        foreach (array_values($photos) as $index => $photo) {
             $rawUrl = $photo['url'] ?? null;
             if (empty($rawUrl)) {
                 continue;
@@ -178,6 +199,8 @@ class NewsController extends Controller
                 $result[] = [
                     'image_url' => $webpPath,
                     'caption' => $photo['caption'] ?? null,
+                    'sort_order' => (int) ($photo['order'] ?? ($index + 1)),
+                    'is_cover' => $index === 0,
                 ];
             }
         }
@@ -188,7 +211,7 @@ class NewsController extends Controller
     /**
      * Menyimpan foto-foto berita ke tabel gallery.
      *
-     * @param  array<int, array{image_url: string, caption: ?string}>  $processedPhotos
+     * @param  array<int, array{image_url: string, caption: ?string, sort_order: int, is_cover: bool}>  $processedPhotos
      */
     protected function syncNewsGalleries(News $news, array $processedPhotos): void
     {
@@ -199,6 +222,8 @@ class NewsController extends Controller
                 'title' => $photo['caption'] ?: $news->title,
                 'image_url' => $photo['image_url'],
                 'caption' => $photo['caption'],
+                'sort_order' => $photo['sort_order'],
+                'is_cover' => $photo['is_cover'],
                 'created_at' => now(),
             ]);
         }

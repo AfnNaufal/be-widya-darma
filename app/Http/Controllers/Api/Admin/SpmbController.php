@@ -26,11 +26,15 @@ class SpmbController extends Controller
     }
 
     /**
-     * Tambah informasi SPMB baru.
+     * Tambah informasi SPMB baru (brosur otomatis dikompres ke .webp).
      */
     public function store(SpmbRequest $request): JsonResponse
     {
-        $spmb = Spmb::create($request->validated());
+        $data = $request->validatedWithWebp('spmb', 'brochure_url', 'brochure');
+        $data['start_date'] = $data['start_date'] ?? now()->toDateString();
+        $data['end_date'] = $data['end_date'] ?? now()->addMonths(6)->toDateString();
+
+        $spmb = Spmb::create($data);
 
         return response()->json([
             'success' => true,
@@ -53,11 +57,13 @@ class SpmbController extends Controller
     }
 
     /**
-     * Perbarui informasi SPMB.
+     * Perbarui informasi SPMB (brosur baru dikompres ke .webp & brosur lama dihapus).
      */
     public function update(SpmbRequest $request, Spmb $spmb): JsonResponse
     {
-        $spmb->update($request->validated());
+        $data = $request->validatedWithWebp('spmb', 'brochure_url', 'brochure');
+
+        $spmb->update($data);
 
         return response()->json([
             'success' => true,

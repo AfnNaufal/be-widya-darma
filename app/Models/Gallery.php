@@ -22,12 +22,16 @@ class Gallery extends Model
         'title',
         'image_url',
         'caption',
+        'sort_order',
+        'is_cover',
         'created_at',
     ];
 
     protected function casts(): array
     {
         return [
+            'sort_order' => 'integer',
+            'is_cover' => 'boolean',
             'created_at' => 'datetime',
         ];
     }
